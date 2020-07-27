@@ -32,7 +32,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.web3j.crypto.ECDSASignature;
 import org.web3j.crypto.Sign.SignatureData;
 
-public class MultiKeyTransactionSigningAcceptanceTestBase extends MultiKeyAcceptanceTestBase {
+public class MultiKeySigningAcceptanceTestBase extends MultiKeyAcceptanceTestBase {
 
   private static final byte[] DATA_TO_SIGN = "42".getBytes(UTF_8);
   private static final String PRIVATE_KEY =

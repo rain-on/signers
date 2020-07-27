@@ -18,7 +18,7 @@ import tech.pegasys.signers.secp256k1.api.Signer;
 import tech.pegasys.signers.secp256k1.api.SignerProvider;
 import tech.pegasys.signers.secp256k1.azure.AzureKeyVaultAuthenticator;
 import tech.pegasys.signers.secp256k1.azure.AzureKeyVaultSignerFactory;
-import tech.pegasys.signers.secp256k1.common.TransactionSignerInitializationException;
+import tech.pegasys.signers.secp256k1.common.SignerInitializationException;
 import tech.pegasys.signers.secp256k1.filebased.FileBasedSignerFactory;
 import tech.pegasys.signers.secp256k1.hashicorp.HashicorpSignerFactory;
 import tech.pegasys.signers.secp256k1.multikey.metadata.AzureSigningMetadataFile;
@@ -94,7 +94,11 @@ public class MultiKeySignerProvider implements SignerProvider, MultiSignerFactor
                 }
                 return null;
               } catch (final IOException e) {
-                LOG.warn("IO Exception raised while loading {}", metadataFile.getFilename());
+                LOG.warn(
+                    "IO Exception raised while loading {}:{}",
+                    metadataFile.getFilename(),
+                    e.getMessage(),
+                    e);
                 return null;
               }
             })
@@ -107,7 +111,7 @@ public class MultiKeySignerProvider implements SignerProvider, MultiSignerFactor
   public Signer createSigner(final AzureSigningMetadataFile metadataFile) {
     try {
       return azureFactory.createSigner(metadataFile.getConfig());
-    } catch (final TransactionSignerInitializationException e) {
+    } catch (final SignerInitializationException e) {
       LOG.error("Failed to construct Azure signer from " + metadataFile.getFilename());
       return null;
     }
@@ -117,7 +121,7 @@ public class MultiKeySignerProvider implements SignerProvider, MultiSignerFactor
   public Signer createSigner(final HashicorpSigningMetadataFile metadataFile) {
     try {
       return hashicorpSignerFactory.create(metadataFile.getConfig());
-    } catch (final TransactionSignerInitializationException e) {
+    } catch (final SignerInitializationException e) {
       LOG.error("Failed to construct Hashicorp signer from " + metadataFile.getFilename());
       return null;
     }
@@ -129,7 +133,7 @@ public class MultiKeySignerProvider implements SignerProvider, MultiSignerFactor
       return FileBasedSignerFactory.createSigner(
           metadataFile.getKeyPath(), metadataFile.getPasswordPath());
 
-    } catch (final TransactionSignerInitializationException e) {
+    } catch (final SignerInitializationException e) {
       LOG.error("Unable to load signer with key " + metadataFile.getKeyPath().getFileName(), e);
       return null;
     }

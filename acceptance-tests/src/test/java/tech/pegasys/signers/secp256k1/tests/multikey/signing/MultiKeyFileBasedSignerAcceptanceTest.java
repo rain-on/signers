@@ -12,38 +12,39 @@
  */
 package tech.pegasys.signers.secp256k1.tests.multikey.signing;
 
-import static tech.pegasys.signers.secp256k1.MultiKeyTomlFileUtil.createAzureTomlFileAt;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static tech.pegasys.signers.secp256k1.MultiKeyTomlFileUtil.createFileBasedTomlFileAt;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeAll;
+import com.google.common.io.Resources;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-public class MultiKeyAzureTransactionSignerAcceptanceTest
-    extends MultiKeyTransactionSigningAcceptanceTestBase {
+public class MultiKeyFileBasedSignerAcceptanceTest extends MultiKeySigningAcceptanceTestBase {
 
-  static final String clientId = System.getenv("AZURE_CLIENT_ID");
-  static final String clientSecret = System.getenv("AZURE_CLIENT_SECRET");
-  static final String keyVaultName = System.getenv("AZURE_KEY_VAULT_NAME");
   static final String FILENAME =
       "09b02f8a5fddd222ade4ea4528faefc399623af3f736be3c44f03e2df22fb792f3931a4d9573d333ca74343305762a753388c3422a86d98b713fc91c1ea04842";
 
-  @BeforeAll
-  public static void checkAzureCredentials() {
-    Assumptions.assumeTrue(
-        clientId != null && clientSecret != null,
-        "Ensure Azure client id and client secret env variables are set");
-  }
-
   @Test
-  public void azureLoadedFromMultiKeyCanSign(@TempDir Path tomlDirectory) {
-    createAzureTomlFileAt(
+  public void fileBasedMultiKeyCanSign(@TempDir Path tomlDirectory)
+      throws URISyntaxException, IOException {
+    final String keyPath =
+        new File(Resources.getResource("secp256k1/rich_benefactor_one.json").toURI())
+            .getAbsolutePath();
+
+    final Path passwordPath = tomlDirectory.resolve("password");
+    Files.write(passwordPath, "pass".getBytes(UTF_8));
+
+    createFileBasedTomlFileAt(
         tomlDirectory.resolve("arbitrary_prefix" + FILENAME + ".toml"),
-        clientId,
-        clientSecret,
-        keyVaultName);
+        keyPath,
+        passwordPath.toString());
+
     setup(tomlDirectory);
     verifySignature();
   }
